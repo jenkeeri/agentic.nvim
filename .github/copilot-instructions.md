@@ -14,6 +14,7 @@
 | Writing or modifying any test | `skills/lua-testing.md` |
 | Implementing a non-trivial change | `skills/qa-review.md` (rubber-duck before) |
 | Reviewing a diff before commit | `skills/qa-review.md` (code-review after) |
+| Changing theme / highlights / winbar | `skills/ui-theming.md` |
 | After **every** completed task | `skills/self-improve.md` (always) |
 
 Loading a skill means reading the file in full before proceeding.
@@ -170,6 +171,16 @@ end
 
 **`goto`/`::label::` is FORBIDDEN** — Selene does not support it. Use inverted
 conditions or `elseif` chains instead.
+
+---
+
+## Git Workflow
+
+Branch name convention: `feat/`, `fix/`, `chore/`, `docs/`, `refactor/` + kebab-case.
+
+**Creating PRs:** `gh` CLI is not installed and the remote uses SSH — there is no stored
+HTTP token. PRs must be opened via the GitHub web UI at:
+`https://github.com/jenkeeri/agentic.nvim/pull/new/<branch-name>`
 
 ---
 
