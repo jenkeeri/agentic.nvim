@@ -348,6 +348,14 @@ function Agentic.setup(opts)
 
     Theme.setup()
 
+    -- Re-apply highlight groups when colorscheme changes so semantic links resolve correctly.
+    vim.api.nvim_create_autocmd("ColorScheme", {
+        group = cleanup_group,
+        callback = function()
+            Theme.setup()
+        end,
+    })
+
     -- Force-reload buffers when files change on disk (e.g., agent edits files directly).
     -- Suppresses the "file changed" prompt so modified buffers reload silently,
     -- matching Cursor/Zed behavior where agent changes always win.

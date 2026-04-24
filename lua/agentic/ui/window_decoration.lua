@@ -57,11 +57,9 @@ local WINDOW_HEADERS = {
 --- @class agentic.ui.WindowDecoration.Config
 --- @field align? "left"|"center"|"right" Header text alignment
 --- @field hl? string Highlight group for the header text
---- @field reverse_hl? string Highlight group for the separator
 local default_config = {
-    align = "center",
+    align = "left",
     hl = Theme.HL_GROUPS.WIN_BAR_TITLE,
-    reverse_hl = "NormalFloat",
 }
 
 --- Concatenates header parts (title, context, suffix) into a single string
@@ -180,17 +178,15 @@ local function set_winbar(winid, text)
 
     local opts = default_config
 
-    local winbar_text = string.format("%%#%s# %s %%#Normal#", opts.hl, text)
+    local winbar_text = string.format(" %%#%s#%s%%#WinBar#", opts.hl, text)
 
-    if opts.align == "left" then
-        winbar_text = winbar_text .. "%="
-    elseif opts.align == "center" then
+    if opts.align == "center" then
         winbar_text = "%=" .. winbar_text .. "%="
     elseif opts.align == "right" then
         winbar_text = "%=" .. winbar_text
     end
 
-    winbar_text = "%#Normal#" .. winbar_text
+    winbar_text = "%#WinBar#" .. winbar_text
 
     vim.api.nvim_set_option_value("winbar", winbar_text, { win = winid })
 end
