@@ -71,7 +71,7 @@ function M.check()
                     command
                 ),
                 {
-                    "See requirements: https://github.com/carlos-algms/agentic.nvim?tab=readme-ov-file#-requirements",
+                    "See requirements: https://github.com/jenkeeri/agentic.nvim?tab=readme-ov-file#-requirements",
                 }
             )
         end

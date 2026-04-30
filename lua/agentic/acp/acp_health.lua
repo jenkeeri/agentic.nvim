@@ -150,7 +150,7 @@ function ACPHealth.check_configured_provider()
         "",
         "Check the `Requirements` section in the README for installation instructions:",
         "",
-        "https://github.com/carlos-algms/agentic.nvim?tab=readme-ov-file#-requirements",
+        "https://github.com/jenkeeri/agentic.nvim?tab=readme-ov-file#-requirements",
         "",
         "**PLEASE NOTE**: Agentic.nvim does NOT install any ACP providers on your behalf, for security and privacy reasons.",
         "",

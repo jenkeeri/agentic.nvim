@@ -352,7 +352,7 @@ function ACPClient:__handle_session_update(params)
                     .. tostring(update.kind)
                     .. "\n\n"
                     .. "Please report this so we can add support for it!\n\n"
-                    .. "https://github.com/carlos-algms/agentic.nvim/issues/new",
+                    .. "https://github.com/jenkeeri/agentic.nvim/issues/new",
                 vim.log.levels.WARN
             )
         end

@@ -29,7 +29,7 @@ function M.show_img_clip_not_installed_message()
             "",
             "```lua",
             "{",
-            '  "carlos-algms/agentic.nvim",',
+            '  "jenkeeri/agentic.nvim",',
             "  dependencies = {",
             "    {",
             '      "hakonharnes/img-clip.nvim",',

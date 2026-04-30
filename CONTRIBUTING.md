@@ -18,7 +18,7 @@ stable
 - Tightening existing code without changing behavior
 - Adding tests for already-shipped behavior
 
-**Open a [discussion](https://github.com/carlos-algms/agentic.nvim/discussions) (or issue) first:**
+**Open a [discussion](https://github.com/jenkeeri/agentic.nvim/discussions) (or issue) first:**
 
 - Anything that adds a new user-facing feature or config option
 - Changes to the chat UI layout, keymaps, or public API

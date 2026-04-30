@@ -1,6 +1,6 @@
 # Agentic.nvim
 
-![PR Checks](https://github.com/carlos-algms/agentic.nvim/actions/workflows/pr-check.yml/badge.svg)
+![PR Checks](https://github.com/jenkeeri/agentic.nvim/actions/workflows/pr-check.yml/badge.svg)
 
 > ⚡ A Chat interface for AI agents in Neovim that works with any provider
 > supporting the [Agent Client Protocol (ACP)](https://agentclientprotocol.com)
@@ -239,7 +239,7 @@ tools like `nvm`, `fnm`, etc...
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
 
   --- @type agentic.PartialUserConfig
   opts = {
@@ -313,7 +313,7 @@ by configuring the `acp_providers` property:
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
   --- @type agentic.PartialUserConfig
   opts = {
     acp_providers = {
@@ -367,7 +367,7 @@ configure it per provider:
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
   --- @type agentic.PartialUserConfig
   opts = {
     acp_providers = {
@@ -390,7 +390,7 @@ default:
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
   --- @type agentic.PartialUserConfig
   opts = {
     acp_providers = {
@@ -412,7 +412,7 @@ Configure the widget layout position and sizing:
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
   --- @type agentic.PartialUserConfig
   opts = {
     windows = {
@@ -462,7 +462,7 @@ a table configuration or a custom render function.
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
   --- @type agentic.PartialUserConfig
   opts = {
     headers = {
@@ -483,7 +483,7 @@ header parts:
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
   --- @type agentic.PartialUserConfig
   opts = {
     headers = {
@@ -620,7 +620,7 @@ your setup:
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
   --- @type agentic.PartialUserConfig
   opts = {
     keymaps = {
@@ -687,7 +687,7 @@ before you accept or reject them. You can configure the diff preview layout:
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
   --- @type agentic.PartialUserConfig
   opts = {
     diff_preview = {
@@ -747,7 +747,7 @@ to install the `img-clip.nvim` dependency:
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
 
   dependencies = {
     { "hakonharnes/img-clip.nvim", opts = {} }
@@ -818,7 +818,7 @@ integrating with other plugins.
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
   --- @type agentic.PartialUserConfig
   opts = {
     hooks = {
@@ -910,7 +910,7 @@ You can customize the icons used for diagnostics in the context panel:
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
   --- @type agentic.PartialUserConfig
   opts = {
     diagnostic_icons = {
@@ -932,7 +932,7 @@ You can customize the icons used to indicate tool call status in the chat:
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
   --- @type agentic.PartialUserConfig
   opts = {
     status_icons = {
@@ -951,7 +951,7 @@ You can customize the icons used in the permission approval workflow:
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
   --- @type agentic.PartialUserConfig
   opts = {
     permission_icons = {
@@ -970,7 +970,7 @@ You can customize the icons used to identify user and agent messages in the chat
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
   --- @type agentic.PartialUserConfig
   opts = {
     chat_icons = {
@@ -987,7 +987,7 @@ You can customize the icons used for messages and interaction states:
 
 ```lua
 {
-  "carlos-algms/agentic.nvim",
+  "jenkeeri/agentic.nvim",
   --- @type agentic.PartialUserConfig
   opts = {
     message_icons = {
@@ -1140,7 +1140,7 @@ Enable debug logging to troubleshoot issues:
 
 ```lua
 {
-   "carlos-algms/agentic.nvim",
+   "jenkeeri/agentic.nvim",
     --- @type agentic.PartialUserConfig
     opts = {
       debug = true,

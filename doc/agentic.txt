@@ -145,7 +145,7 @@ INSTALLATION                                      *agentic-installation*
 Using lazy.nvim: ~
 >lua
   {
-    "carlos-algms/agentic.nvim",
+    "jenkeeri/agentic.nvim",
 
     --- @type agentic.PartialUserConfig
     opts = {
@@ -566,7 +566,7 @@ Drag-and-drop works with any terminal that supports it. Clipboard
 paste requires |img-clip.nvim|:
 >lua
   {
-    "carlos-algms/agentic.nvim",
+    "jenkeeri/agentic.nvim",
     dependencies = {
       { "hakonharnes/img-clip.nvim", opts = {} },
     },

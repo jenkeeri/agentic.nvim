@@ -1,7 +1,7 @@
 # agentic.nvim — Copilot Instructions
 
-> Personal fork of `carlos-algms/agentic.nvim` by `jenkeeri`. No upstream
-> contribution intended. This fork is owned entirely and developed solo.
+> Personal Neovim plugin owned and developed solo by `jenkeeri`. No
+> external contribution intended.
 
 ---
 
