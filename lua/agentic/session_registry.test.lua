@@ -394,12 +394,17 @@ describe("agentic.SessionRegistry", function()
         end)
     end)
 
-    describe("sessions weak table", function()
-        it("uses weak value metatable", function()
-            local metatable = getmetatable(SessionRegistry.sessions)
-
-            assert.is_not_nil(metatable)
-            assert.equal("v", metatable.__mode)
+    describe("sessions strong table", function()
+        it("uses strong references so a tab's session is not GC'd", function()
+            -- Sessions must outlive any local Lua reference; cleanup is
+            -- driven by TabClosed -> destroy_session, not by GC.
+            local fake_session = { id = "gc-test" }
+            SessionRegistry.sessions[888888] = fake_session
+            fake_session = nil
+            collectgarbage("collect")
+            collectgarbage("collect")
+            assert.is_not_nil(SessionRegistry.sessions[888888])
+            SessionRegistry.sessions[888888] = nil
         end)
     end)
 
