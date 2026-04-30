@@ -884,18 +884,22 @@ colorscheme.
 
 ### Available Highlight Groups
 
-| Highlight Group          | Purpose                                  | Default                             |
-| ------------------------ | ---------------------------------------- | ----------------------------------- |
-| `AgenticDiffDelete`      | Deleted lines in diff view               | Links to `DiffDelete`               |
-| `AgenticDiffAdd`         | Added lines in diff view                 | Links to `DiffAdd`                  |
-| `AgenticDiffDeleteWord`  | Word-level deletions in diff             | `bg=#9a3c3c, bold=true`             |
-| `AgenticDiffAddWord`     | Word-level additions in diff             | `bg=#155729, bold=true`             |
-| `AgenticStatusPending`   | Pending tool call status indicator       | `bg=#5f4d8f`                        |
-| `AgenticStatusCompleted` | Completed tool call status indicator     | `bg=#2d5a3d`                        |
-| `AgenticStatusFailed`    | Failed tool call status indicator        | `bg=#7a2d2d`                        |
-| `AgenticCodeBlockFence`  | The left border decoration on tool calls | Links to `Directory`                |
-| `AgenticTitle`           | Window titles in sidebar                 | `bg=#2787b0, fg=#000000, bold=true` |
-| `AgenticThinking`        | Thinking block text in chat buffer       | Links to `Comment`                  |
+| Highlight Group          | Purpose                                  | Default                     |
+| ------------------------ | ---------------------------------------- | --------------------------- |
+| `AgenticDiffDelete`      | Deleted lines in diff view               | Links to `DiffDelete`       |
+| `AgenticDiffAdd`         | Added lines in diff view                 | Links to `DiffAdd`          |
+| `AgenticDiffDeleteWord`  | Word-level deletions in diff             | Links to `DiffText`         |
+| `AgenticDiffAddWord`     | Word-level additions in diff             | Links to `DiffText`         |
+| `AgenticStatusPending`   | Pending tool call status indicator       | Links to `DiagnosticWarn`   |
+| `AgenticStatusCompleted` | Completed tool call status indicator     | Links to `DiagnosticOk`     |
+| `AgenticStatusFailed`    | Failed tool call status indicator        | Links to `DiagnosticError`  |
+| `AgenticCodeBlockFence`  | The left border decoration on tool calls | Links to `Directory`        |
+| `AgenticTitle`           | Window titles in sidebar                 | Links to `Title`            |
+| `AgenticThinking`        | Thinking block text in chat buffer       | Links to `Comment`          |
+| `AgenticSpinnerGenerating` | Generating spinner animation           | Links to `Function`         |
+| `AgenticSpinnerThinking` | Thinking spinner animation               | Links to `Statement`        |
+| `AgenticSpinnerSearching`| Searching spinner animation              | Links to `WarningMsg`       |
+| `AgenticSpinnerBusy`     | Busy spinner animation                   | Links to `Comment`          |
 
 If any of these highlight exists, Agentic will use it instead of creating new
 ones.

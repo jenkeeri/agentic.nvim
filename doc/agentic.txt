@@ -638,21 +638,21 @@ loads, that definition is preserved.
   Group                    Purpose                    Default ~
   `AgenticDiffDelete`        Deleted lines in diff      Links to DiffDelete
   `AgenticDiffAdd`           Added lines in diff        Links to DiffAdd
-  `AgenticDiffDeleteWord`    Word-level deletions       bg=#9a3c3c bold
-  `AgenticDiffAddWord`       Word-level additions       bg=#155729 bold
-  `AgenticStatusPending`     Pending tool call status   bg=#5f4d8f
-  `AgenticStatusCompleted`   Completed tool status      bg=#2d5a3d
-  `AgenticStatusFailed`      Failed tool status         bg=#7a2d2d
+  `AgenticDiffDeleteWord`    Word-level deletions       Links to DiffText
+  `AgenticDiffAddWord`       Word-level additions       Links to DiffText
+  `AgenticStatusPending`     Pending tool call status   Links to DiagnosticWarn
+  `AgenticStatusCompleted`   Completed tool status      Links to DiagnosticOk
+  `AgenticStatusFailed`      Failed tool status         Links to DiagnosticError
   `AgenticCodeBlockFence`    Tool call left border      Links to Directory
-  `AgenticTitle`             Window titles              bg=#2787b0 fg=#000000
+  `AgenticTitle`             Window titles              Links to Title
   `AgenticThinking`          Thinking block text        Links to Comment
 
 Spinner highlight groups (not user-overridable in config, but
 can be set via |nvim_set_hl()|):
 
-  `AgenticSpinnerGenerating`   Generating animation   fg=#61afef bold
-  `AgenticSpinnerThinking`     Thinking animation     fg=#c678dd bold
-  `AgenticSpinnerSearching`    Searching animation    fg=#e5c07b bold
+  `AgenticSpinnerGenerating`   Generating animation   Links to Function
+  `AgenticSpinnerThinking`     Thinking animation     Links to Statement
+  `AgenticSpinnerSearching`    Searching animation    Links to WarningMsg
   `AgenticSpinnerBusy`         Busy animation         Links to Comment
 
                                               *agentic-diagnostic-icons*
