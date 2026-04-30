@@ -4,9 +4,12 @@ local DefaultConfig = require("agentic.config_default")
 local ACPHealth = require("agentic.acp.acp_health")
 
 --- @class agentic.SessionRegistry
---- @field sessions table<integer, agentic.SessionManager|nil> Weak map: tab_page_id -> SessionManager instance
+--- @field sessions table<integer, agentic.SessionManager|nil> Map: tab_page_id -> SessionManager instance
 local SessionRegistry = {
-    sessions = setmetatable({}, { __mode = "v" }),
+    -- Strong references: a tab's session must not be GC'd while the tab is
+    -- open. Cleanup happens on TabClosed and switch_provider via
+    -- destroy_session().
+    sessions = {},
 }
 
 --- @param tab_page_id integer|nil

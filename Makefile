@@ -29,10 +29,18 @@ luals:
 
 # Selene linter
 selene:
+	@if [ ! -x "$(SELENE)" ] && ! command -v selene >/dev/null 2>&1; then \
+		echo "selene: not installed (skipped). Install with 'cargo install selene' or via mason."; \
+		exit 0; \
+	fi; \
 	"$(SELENE)" .
 
 # Selene a specific file
 selene-file:
+	@if [ ! -x "$(SELENE)" ] && ! command -v selene >/dev/null 2>&1; then \
+		echo "selene: not installed (skipped). Install with 'cargo install selene' or via mason."; \
+		exit 0; \
+	fi; \
 	"$(SELENE)" "$(FILE)"
 
 # StyLua formatting check

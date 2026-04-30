@@ -405,4 +405,25 @@ describe("ACPClient", function()
             assert.equal(0, vim.tbl_count(client.callbacks))
         end)
     end)
+
+    describe("__handle_request_permission", function()
+        it(
+            "notifies and returns instead of erroring on malformed request",
+            function()
+                local client = create_ready_client(LIST_CAPS)
+
+                local ok = pcall(function()
+                    --- @diagnostic disable-next-line: invisible
+                    client:__handle_request_permission(
+                        42,
+                        --- @diagnostic disable-next-line: missing-fields
+                        {}
+                    )
+                end)
+
+                assert.is_true(ok)
+                assert.spy(logger_notify_stub).was.called()
+            end
+        )
+    end)
 end)

@@ -77,6 +77,14 @@ end
 --- You can add 1 or more in a single call
 --- @param opts agentic.ui.ChatWidget.AddFilesToContextOpts
 function Agentic.add_files_to_context(opts)
+    if type(opts) ~= "table" then
+        Logger.notify(
+            "Wrong parameters passed to `add_files_to_context()`: "
+                .. vim.inspect(opts)
+        )
+        return
+    end
+
     SessionRegistry.get_session_for_tab_page(nil, function(session)
         local files = opts.files
 
@@ -143,6 +151,14 @@ end
 --- @param opts agentic.ui.NewSessionOpts|nil
 function Agentic.new_session(opts)
     if opts and opts.provider then
+        if not Config.acp_providers[opts.provider] then
+            Logger.notify(
+                "Unknown provider: "
+                    .. tostring(opts.provider)
+                    .. ". Configure it under `acp_providers` first."
+            )
+            return
+        end
         Config.provider = opts.provider
     end
 
@@ -380,6 +396,9 @@ function Agentic.setup(opts)
         group = cleanup_group,
         callback = function(ev)
             local tab_id = tonumber(ev.match)
+            if not tab_id then
+                return
+            end
             SessionRegistry.destroy_session(tab_id)
         end,
         desc = "Cleanup Agentic processes on tab close",

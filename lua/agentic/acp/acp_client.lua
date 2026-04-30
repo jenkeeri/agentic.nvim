@@ -501,7 +501,10 @@ end
 --- @param request agentic.acp.RequestPermission
 function ACPClient:__handle_request_permission(message_id, request)
     if not request.sessionId or not request.toolCall then
-        error("Invalid request_permission")
+        Logger.notify(
+            "Invalid request_permission: " .. vim.inspect(request),
+            vim.log.levels.ERROR
+        )
         return
     end
 
