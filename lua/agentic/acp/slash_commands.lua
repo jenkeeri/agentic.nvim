@@ -79,9 +79,19 @@ function SlashCommands.setup_completion(bufnr)
     vim.bo[bufnr].completefunc =
         "v:lua.require'agentic.acp.slash_commands'.complete_func"
 
+    local feeding = false
     vim.api.nvim_create_autocmd("TextChangedI", {
         buffer = bufnr,
         callback = function()
+            if feeding then
+                return
+            end
+
+            -- Don't trigger again while the completion popup is already open
+            if vim.fn.pumvisible() == 1 then
+                return
+            end
+
             local commands = States.getSlashCommands()
             if #commands == 0 then
                 return
@@ -101,12 +111,18 @@ function SlashCommands.setup_completion(bufnr)
                 return
             end
 
-            -- Feed <C-x><C-u> to trigger completefunc
+            -- Feed <C-x><C-u> to trigger completefunc. Guard against
+            -- re-entry: feedkeys queues input that may itself fire
+            -- TextChangedI before this callback returns.
+            feeding = true
             vim.api.nvim_feedkeys(
                 vim.api.nvim_replace_termcodes("<C-x><C-u>", true, false, true),
                 "n",
                 false
             )
+            vim.schedule(function()
+                feeding = false
+            end)
         end,
     })
 end

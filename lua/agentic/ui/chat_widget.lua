@@ -322,6 +322,14 @@ function ChatWidget:_initialize()
             if not closed_winid then
                 return
             end
+            -- Filter by tabpage: winids are globally unique, but defending
+            -- against future recycling and making intent explicit costs
+            -- nothing.
+            local ok, win_tabpage =
+                pcall(vim.api.nvim_win_get_tabpage, closed_winid)
+            if ok and win_tabpage ~= self.tab_page_id then
+                return
+            end
             -- Any widget window closed by the user closes the whole widget,
             -- except "todos" which can be closed independently.
             for _, winid in pairs(self.win_nrs) do

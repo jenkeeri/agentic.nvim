@@ -558,6 +558,17 @@ function MessageWriter:update_tool_call_block(tool_call_block)
 
     tracker = vim.tbl_deep_extend("force", tracker, tool_call_block)
 
+    -- vim.tbl_deep_extend recursively merges arrays index-by-index instead
+    -- of replacing them, which silently corrupts diff/decoration arrays
+    -- when the new value is shorter than the old one. Replace these
+    -- explicitly when present in the update payload.
+    if tool_call_block.diff ~= nil then
+        tracker.diff = tool_call_block.diff
+    end
+    if tool_call_block.decoration_extmark_ids ~= nil then
+        tracker.decoration_extmark_ids = tool_call_block.decoration_extmark_ids
+    end
+
     -- Merge body: append new to previous with divider if both exist and are different
     if
         previous_body
