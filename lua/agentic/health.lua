@@ -12,14 +12,15 @@ function M.check()
     vim_health.start("agentic.nvim")
     -- Check Neovim version
     local nvim_version = vim.version()
-    local required_version = { 0, 11, 0 }
-    if
-        nvim_version.major > required_version[1]
+    local required_version = { 0, 11, 5 }
+    local meets_required = nvim_version.major > required_version[1]
+        or (nvim_version.major == required_version[1] and nvim_version.minor > required_version[2])
         or (
             nvim_version.major == required_version[1]
-            and nvim_version.minor >= required_version[2]
+            and nvim_version.minor == required_version[2]
+            and nvim_version.patch >= required_version[3]
         )
-    then
+    if meets_required then
         vim_health.ok(
             string.format(
                 "Neovim version %d.%d.%d",

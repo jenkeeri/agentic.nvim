@@ -21,6 +21,16 @@ local instances_by_buffer = {}
 --- @param getter agentic.ui.ToolCallFold.Getter
 function Fold.register(bufnr, getter)
     instances_by_buffer[bufnr] = { getter = getter }
+
+    -- Auto-cleanup on buffer wipeout in case unregister() isn't reached.
+    vim.api.nvim_create_autocmd("BufWipeout", {
+        buffer = bufnr,
+        once = true,
+        callback = function()
+            Fold.unregister(bufnr)
+        end,
+        desc = "Agentic: unregister tool_call_fold getter on buffer wipeout",
+    })
 end
 
 --- Remove a buffer's getter. Safe to call on an already-unregistered bufnr.

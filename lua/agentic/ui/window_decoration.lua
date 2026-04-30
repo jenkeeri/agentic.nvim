@@ -148,10 +148,6 @@ local function resolve_header_text(dynamic_header, window_name)
         )
 end
 
---- Cache if there's a lualine like plugin managing the winbar
---- @type boolean|nil
-local has_line_plugin = nil
-
 --- @param winid integer
 --- @param text string
 local function set_winbar(winid, text)
@@ -159,14 +155,12 @@ local function set_winbar(winid, text)
         return
     end
 
-    -- If winbar is already set (not empty), a plugin like lualine is managing it
-    -- Skip setting ours to prevent flickering
-    if has_line_plugin == nil then
-        local current_winbar = vim.wo[winid].winbar
-        has_line_plugin = current_winbar ~= ""
-    end
-
-    if has_line_plugin then
+    -- If winbar is already set (not empty), a plugin like lualine is
+    -- managing it for this window: skip setting ours to prevent
+    -- flickering. Per-window check (no caching) so users with mixed
+    -- setups or plugins toggled mid-session still get correct behaviour.
+    local current_winbar = vim.wo[winid].winbar
+    if current_winbar ~= "" then
         return
     end
 

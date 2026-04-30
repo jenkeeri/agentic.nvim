@@ -281,6 +281,17 @@ function M.setup_keymaps(bufnr)
     BufHelpers.keymap_set(bufnr, "n", keymaps.prev_hunk, function()
         M.navigate_prev(bufnr)
     end, { desc = "Go to previous hunk - Agentic DiffPreview" })
+
+    -- Ensure module-level state does not leak when the buffer is wiped
+    -- without restore_keymaps() being called.
+    vim.api.nvim_create_autocmd("BufWipeout", {
+        buffer = bufnr,
+        once = true,
+        callback = function()
+            M.clear_state(bufnr)
+        end,
+        desc = "Agentic: clear hunk navigation state on buffer wipeout",
+    })
 end
 
 --- Restore saved keymaps for buffer

@@ -68,7 +68,7 @@ function Logger.debug(...)
     local formatted_message = format_debug_message(...)
 
     if formatted_message then
-        print(unpack(formatted_message))
+        print(table.concat(formatted_message, " "))
     end
 end
 

@@ -91,17 +91,95 @@ describe("FilePicker:scan_files", function()
 
     describe("real commands", function()
         local original_exclude_patterns
+        local original_cwd
+        local fixture_dir
+
+        --- Build a deterministic fixture tree in a tempdir and cd into it.
+        --- Initialises a git repo so `git ls-files` works.
+        --- @return string fixture_dir Absolute path to fixture root
+        local function build_fixture()
+            local dir = vim.fn.tempname()
+            vim.fn.mkdir(dir, "p")
+            vim.fn.mkdir(dir .. "/src", "p")
+            vim.fn.mkdir(dir .. "/tests", "p")
+            vim.fn.mkdir(dir .. "/.hidden", "p")
+
+            local files = {
+                "README.md",
+                "src/a.lua",
+                "src/b.lua",
+                "src/sub/c.lua",
+                "tests/a.test.lua",
+                ".hidden/secret.txt",
+                ".dotfile",
+            }
+            vim.fn.mkdir(dir .. "/src/sub", "p")
+            for _, rel in ipairs(files) do
+                local fd = io.open(dir .. "/" .. rel, "w")
+                if not fd then
+                    error("failed to create fixture file " .. rel)
+                end
+                fd:write("x\n")
+                fd:close()
+            end
+
+            -- Empty .gitignore so all fixture files are tracked-eligible.
+            local gi = io.open(dir .. "/.gitignore", "w")
+            if not gi then
+                error("failed to create .gitignore")
+            end
+            gi:write("\n")
+            gi:close()
+
+            -- git init + commit so `git ls-files -co --exclude-standard`
+            -- returns the same set as rg/fd.
+            vim.fn.system({ "git", "-C", dir, "init", "-q" })
+            vim.fn.system({ "git", "-C", dir, "add", "-A" })
+            vim.fn.system({
+                "git",
+                "-C",
+                dir,
+                "-c",
+                "user.email=t@t",
+                "-c",
+                "user.name=t",
+                "commit",
+                "-q",
+                "-m",
+                "init",
+            })
+            return dir
+        end
 
         before_each(function()
             original_exclude_patterns =
                 vim.tbl_extend("force", {}, FilePicker.GLOB_EXCLUDE_PATTERNS)
+            original_cwd = vim.fn.getcwd()
+            fixture_dir = build_fixture()
+            vim.cmd("lcd " .. vim.fn.fnameescape(fixture_dir))
         end)
 
         after_each(function()
             FilePicker.GLOB_EXCLUDE_PATTERNS = original_exclude_patterns
+            vim.cmd("lcd " .. vim.fn.fnameescape(original_cwd))
+            if fixture_dir and fixture_dir ~= "" then
+                vim.fn.delete(fixture_dir, "rf")
+            end
         end)
 
         it("should return same files in same order for all commands", function()
+            -- Skip if any required tool is missing; the test compares all
+            -- three against each other and is meaningless without all of them.
+            if vim.fn.executable(original_cmd_rg) ~= 1 then
+                return
+            end
+            if vim.fn.executable(original_cmd_fd) ~= 1 then
+                return
+            end
+            if vim.fn.executable(original_cmd_git) ~= 1 then
+                return
+            end
+
             -- Test rg
             FilePicker.CMD_RG[1] = original_cmd_rg
             FilePicker.CMD_FD[1] = "nonexistent_fd"
@@ -147,6 +225,10 @@ describe("FilePicker:scan_files", function()
         end)
 
         it("should use glob fallback when all commands fail", function()
+            if vim.fn.executable(original_cmd_rg) ~= 1 then
+                return
+            end
+
             -- First, get files from rg for comparison
             FilePicker.CMD_RG[1] = original_cmd_rg
             FilePicker.CMD_FD[1] = "nonexistent_fd"
@@ -157,26 +239,6 @@ describe("FilePicker:scan_files", function()
             FilePicker.CMD_RG[1] = "nonexistent_rg"
             FilePicker.CMD_FD[1] = "nonexistent_fd"
             FilePicker.CMD_GIT[1] = "nonexistent_git"
-
-            -- deps is the temp folder where mini.nvim is installed during tests
-            table.insert(FilePicker.GLOB_EXCLUDE_PATTERNS, "deps/")
-            -- lazy_repro is the temp folder where plugins are installed during tests
-            table.insert(FilePicker.GLOB_EXCLUDE_PATTERNS, "lazy_repro/")
-            -- .local is the folder where Neovim is installed during tests in CI
-            table.insert(FilePicker.GLOB_EXCLUDE_PATTERNS, "%.local/")
-            -- settings.local.json is gitignored but glob fallback doesn't respect .gitignore
-            table.insert(
-                FilePicker.GLOB_EXCLUDE_PATTERNS,
-                "settings%.local%.json"
-            )
-            -- .opencode/.gitignore ignores specific files (bun.lock, package.json, etc.)
-            -- rg/fd/git respect nested .gitignore but glob fallback doesn't
-            table.insert(FilePicker.GLOB_EXCLUDE_PATTERNS, "%.opencode/bun")
-            table.insert(FilePicker.GLOB_EXCLUDE_PATTERNS, "%.opencode/package")
-            table.insert(
-                FilePicker.GLOB_EXCLUDE_PATTERNS,
-                "%.opencode/%.gitignore"
-            )
 
             local files_glob = picker:scan_files()
 
