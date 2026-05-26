@@ -7,13 +7,20 @@ the Agent Client Protocol:
 
 - **Requirements**: External CLI tools must be installed by the user, we don't
   install them for security reasons.
-  - `claude-agent-acp` for Claude
-  - `gemini` for Gemini
-  - `codex-acp` for Codex
-  - `opencode` for OpenCode
-  - `cursor-agent-acp` for Cursor Agent
-  - `auggie` for Augment Code
-  - `vibe-acp` for Mistral Vibe
+
+| Provider key       | Command           | Notes                        |
+| ------------------ | ----------------- | ---------------------------- |
+| `claude-agent-acp` | `claude-agent-acp`|                              |
+| `claude-acp`       | `claude-code-acp` |                              |
+| `gemini-acp`       | `gemini --acp`    |                              |
+| `codex-acp`        | `codex-acp`       |                              |
+| `opencode-acp`     | `opencode acp`    |                              |
+| `cursor-acp`       | `cursor-agent acp`|                              |
+| `copilot-acp`      | `copilot --acp --stdio` |                        |
+| `auggie-acp`       | `auggie --acp`    |                              |
+| `mistral-vibe-acp` | `vibe-acp`        |                              |
+| `cline-acp`        | `cline --acp`     |                              |
+| `goose-acp`        | `goose acp`       |                              |
 
 NOTE: Install instructions are in the README.md
 

@@ -54,7 +54,7 @@ luals issues for mini.test child API) — no regressions introduced.
 
 | Decision | Rationale |
 |----------|-----------|
-| Flat skills structure | Personal project; dotfiles-style simpler than work-style subdirs |
+| Skills structure | `.github/skills/` uses flat `.md` files; `.claude/skills/` uses `SKILL.md` subdirectory pattern (Claude Code convention) |
 | No upstream PR workflow | Solo personal fork; no CodeRabbit, no draft PR mandate |
 | Rubber-duck before, code-review after | Catch design flaws early (cheap) not late (expensive) |
 | Semantic hl links (not hex) | Plugin adapts to user's colorscheme; no hardcoded dark/light assumption |

@@ -44,7 +44,7 @@ If an existing instruction is wrong, annotate it:
 
 | Discovery | Target file |
 |-----------|-------------|
-| New Lua pattern or convention | `copilot-instructions.md` → relevant section |
+| New Lua pattern or convention | `AGENTS.md` → relevant section |
 | Testing gotcha (mini.test, spy, assert) | `skills/lua-testing.md` |
 | QA or review process improvement | `skills/qa-review.md` |
 | Self-improvement process change | this file |

@@ -9,7 +9,6 @@
       "Bash(gh run view:*)",
       "Bash(luac:*)",
       "Bash(make format:*)",
-      "Bash(make luacheck:*)",
       "Bash(make luals:*)",
       "Bash(make test-file:*)",
       "Bash(make test:*)",
