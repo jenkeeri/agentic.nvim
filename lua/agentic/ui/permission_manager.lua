@@ -172,6 +172,26 @@ function PermissionManager:_complete_request(option_id)
     self:_process_next()
 end
 
+--- Remove current request UI without invoking its callback.
+--- Use when the session_manager is directly calling the ACP callback itself.
+function PermissionManager:discard_current()
+    local current = self.current_request
+    if not current then
+        return
+    end
+
+    self.message_writer:remove_permission_buttons(
+        current.button_start_row,
+        current.button_end_row
+    )
+
+    self:_remove_keymaps()
+    self.message_writer:set_on_content_changed(nil)
+
+    self.current_request = nil
+    self:_process_next()
+end
+
 --- Clear all displayed buttons and keymaps, cancel all pending requests
 function PermissionManager:clear()
     if self.current_request then

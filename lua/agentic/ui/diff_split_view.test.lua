@@ -127,8 +127,7 @@ describe("DiffSplitView", function()
                     assert.is_not_nil(state.file_path)
 
                     assert.is_false(vim.bo[state.original_bufnr].modifiable)
-                    assert.is_true(vim.bo[state.original_bufnr].modified)
-                    assert.is_false(vim.bo[state.new_bufnr].modifiable)
+                    assert.is_true(vim.bo[state.new_bufnr].modifiable)
                 end
             end
         )
@@ -349,6 +348,163 @@ describe("DiffSplitView", function()
             assert.is_nil(DiffSplitView.get_split_state(test_tabpage))
             assert.equal(orig_modifiable, vim.bo[bufnr].modifiable)
         end)
+
+        it(
+            "accept_diff keymap calls on_accept with scratch buffer lines",
+            function()
+                local Config = require("agentic.config")
+                local accepted_lines = nil
+                local accept_spy = spy_module.new(function(lines)
+                    accepted_lines = lines
+                end)
+
+                DiffSplitView.show_split_diff({
+                    file_path = test_file_path,
+                    diff = { old = { "local x = 1" }, new = { "local x = 2" } },
+                    get_winid = function()
+                        return vim.api.nvim_get_current_win()
+                    end,
+                    on_accept = accept_spy --[[@as function]],
+                })
+
+                local state = DiffSplitView.get_split_state(test_tabpage)
+                assert.is_not_nil(state)
+
+                if state then
+                    vim.api.nvim_buf_set_lines(
+                        state.new_bufnr,
+                        0,
+                        -1,
+                        false,
+                        { "local x = 99" }
+                    )
+                    local accept_key = Config.keymaps.diff_preview.accept_diff
+                    local normalized = vim.api.nvim_replace_termcodes(
+                        accept_key,
+                        true,
+                        false,
+                        true
+                    )
+                    -- Directly invoke the callback (feedkeys on a non-current window
+                    -- has platform-specific behaviour in headless mode)
+                    for _, km in
+                        ipairs(
+                            vim.api.nvim_buf_get_keymap(state.new_bufnr, "n")
+                        )
+                    do
+                        local lhs = vim.api.nvim_replace_termcodes(
+                            km.lhs,
+                            true,
+                            false,
+                            true
+                        )
+                        if lhs == normalized and km.callback then
+                            km.callback()
+                            break
+                        end
+                    end
+
+                    assert.equal(1, accept_spy.call_count)
+                    assert.same({ "local x = 99" }, accepted_lines)
+                end
+            end
+        )
+
+        it("reject_diff keymap calls on_reject", function()
+            local Config = require("agentic.config")
+            local reject_spy = spy_module.new(function() end)
+
+            DiffSplitView.show_split_diff({
+                file_path = test_file_path,
+                diff = { old = { "local x = 1" }, new = { "local x = 2" } },
+                get_winid = function()
+                    return vim.api.nvim_get_current_win()
+                end,
+                on_reject = reject_spy --[[@as function]],
+            })
+
+            local state = DiffSplitView.get_split_state(test_tabpage)
+            assert.is_not_nil(state)
+
+            if state then
+                local reject_key = Config.keymaps.diff_preview.reject_diff
+                local normalized = vim.api.nvim_replace_termcodes(
+                    reject_key,
+                    true,
+                    false,
+                    true
+                )
+                -- Directly invoke the callback (feedkeys on a read-only buffer triggers
+                -- E21 in headless mode for some keys before the keymap can intercept)
+                for _, km in
+                    ipairs(
+                        vim.api.nvim_buf_get_keymap(state.original_bufnr, "n")
+                    )
+                do
+                    local lhs = vim.api.nvim_replace_termcodes(
+                        km.lhs,
+                        true,
+                        false,
+                        true
+                    )
+                    if lhs == normalized and km.callback then
+                        km.callback()
+                        break
+                    end
+                end
+
+                assert.equal(1, reject_spy.call_count)
+            end
+        end)
+
+        it(
+            "accept_diff and reject_diff keymaps are removed from original_bufnr after clear",
+            function()
+                local Config = require("agentic.config")
+
+                local bufnr = vim.fn.bufadd(test_file_path)
+                DiffSplitView.show_split_diff({
+                    file_path = test_file_path,
+                    diff = {
+                        old = { "local x = 1" },
+                        new = { "local x = 2" },
+                    },
+                    get_winid = function()
+                        return vim.api.nvim_get_current_win()
+                    end,
+                    on_accept = function(_) end,
+                    on_reject = function() end,
+                })
+
+                local accept_key = Config.keymaps.diff_preview.accept_diff
+                local reject_key = Config.keymaps.diff_preview.reject_diff
+
+                local function has_keymap(b, key)
+                    local norm =
+                        vim.api.nvim_replace_termcodes(key, true, false, true)
+                    for _, km in ipairs(vim.api.nvim_buf_get_keymap(b, "n")) do
+                        local km_norm = vim.api.nvim_replace_termcodes(
+                            km.lhs,
+                            true,
+                            false,
+                            true
+                        )
+                        if norm == km_norm then
+                            return true
+                        end
+                    end
+                    return false
+                end
+
+                assert.is_true(has_keymap(bufnr, accept_key))
+                assert.is_true(has_keymap(bufnr, reject_key))
+
+                DiffSplitView.clear_split_diff(test_tabpage)
+
+                assert.is_false(has_keymap(bufnr, accept_key))
+                assert.is_false(has_keymap(bufnr, reject_key))
+            end
+        )
     end)
 
     describe("clear_split_diff", function()
@@ -356,7 +512,6 @@ describe("DiffSplitView", function()
             local bufnr = vim.fn.bufadd(test_file_path)
 
             local orig_modifiable = vim.bo[bufnr].modifiable
-            local orig_modified = vim.bo[bufnr].modified
 
             DiffSplitView.show_split_diff({
                 file_path = test_file_path,
@@ -370,7 +525,6 @@ describe("DiffSplitView", function()
             DiffSplitView.clear_split_diff(tabpage)
 
             assert.equal(orig_modifiable, vim.bo[bufnr].modifiable)
-            assert.equal(orig_modified, vim.bo[bufnr].modified)
             assert.is_nil(DiffSplitView.get_split_state(tabpage))
         end)
 

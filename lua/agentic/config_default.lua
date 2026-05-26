@@ -399,6 +399,8 @@ local ConfigDefault = {
         diff_preview = {
             next_hunk = "]c",
             prev_hunk = "[c",
+            accept_diff = "<C-y>",
+            reject_diff = "<C-n>",
         },
     },
 

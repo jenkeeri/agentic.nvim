@@ -174,6 +174,56 @@ describe("agentic.ui.PermissionManager", function()
 
             assert.is_nil(writer._on_content_changed)
         end)
+
+        it(
+            "discard_current removes UI without calling stored callback",
+            function()
+                local callback_spy = spy.new(function() end)
+
+                pm:add_request(
+                    make_request("tc-discard"),
+                    callback_spy --[[@as fun(option_id: string|nil)]]
+                )
+
+                assert.is_not_nil(pm.current_request)
+                assert.is_true(has_buf_keymap("n", "1"))
+
+                pm:discard_current()
+
+                assert.is_nil(pm.current_request)
+                assert.equal(0, callback_spy.call_count)
+                assert.is_false(has_buf_keymap("n", "1"))
+                assert.is_false(has_buf_keymap("n", "2"))
+            end
+        )
+
+        it("discard_current advances the queue to the next request", function()
+            local cb1 = spy.new(function() end)
+            local cb2 = spy.new(function() end)
+
+            pm:add_request(
+                make_request("tc-q1"),
+                cb1 --[[@as fun(option_id: string|nil)]]
+            )
+            pm:add_request(
+                make_request("tc-q2"),
+                cb2 --[[@as fun(option_id: string|nil)]]
+            )
+
+            assert.equal(
+                "tc-q1",
+                pm.current_request and pm.current_request.toolCallId
+            )
+
+            pm:discard_current()
+
+            assert.equal(0, cb1.call_count)
+            assert.is_not_nil(pm.current_request)
+            assert.equal(
+                "tc-q2",
+                pm.current_request and pm.current_request.toolCallId
+            )
+        end)
     end)
 
     describe("empty line accumulation during reanchor", function()

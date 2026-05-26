@@ -497,6 +497,8 @@ Override default keybindings via the `keymaps` config option:
       diff_preview = {
         next_hunk = "]c",
         prev_hunk = "[c",
+        accept_diff = "<C-y>",
+        reject_diff = "<C-n>",
       },
     },
   }
@@ -534,6 +536,12 @@ Configuration: ~
 
 Navigation: use `]c` / `[c` to move between hunks (configurable
 via |agentic-keymaps-customizing|).
+
+In split layout, the right buffer (AI proposal) is editable — modify
+it before accepting. Use `<C-y>` to accept or `<C-n>` to reject from
+either diff buffer (configurable via `keymaps.diff_preview.accept_diff`
+and `keymaps.diff_preview.reject_diff`). On accept, Neovim writes the
+(possibly edited) proposal to disk; the agent never touches the file.
 
 Note: changing layout requires restarting Neovim.
 

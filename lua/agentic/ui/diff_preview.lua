@@ -223,6 +223,8 @@ end
 --- @field file_path string
 --- @field diff agentic.ui.MessageWriter.ToolCallDiff
 --- @field get_winid fun(bufnr: number): number|nil Called when buffer is not already visible, should return a winid
+--- @field on_accept? fun(lines: string[]) Called when user accepts from the diff view
+--- @field on_reject? fun() Called when user rejects from the diff view
 
 --- @param opts agentic.ui.DiffPreview.ShowOpts
 function M.show_diff(opts)
@@ -383,8 +385,8 @@ end
 
 --- Clears the diff highlights from the given buffer
 --- @param buf number|string Buffer number or file path
---- @param is_rejection boolean|nil If true and file doesn't exist, cleanup buffer
-function M.clear_diff(buf, is_rejection)
+--- @param cleanup_new_file boolean|nil If true and file doesn't exist on disk, cleanup buffer
+function M.clear_diff(buf, cleanup_new_file)
     local bufnr = type(buf) == "string" and vim.fn.bufnr(buf) or buf --[[@as integer]]
 
     -- Fallback: check for suggestion buffer by smart path
@@ -430,7 +432,7 @@ function M.clear_diff(buf, is_rejection)
     end
 
     -- On rejection for new files, switch window to alternate buffer
-    if is_rejection then
+    if cleanup_new_file then
         local file_path = vim.api.nvim_buf_get_name(bufnr)
         local stat = file_path ~= "" and vim.uv.fs_stat(file_path)
 

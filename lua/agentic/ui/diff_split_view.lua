@@ -1,4 +1,5 @@
 local Config = require("agentic.config")
+local BufHelpers = require("agentic.utils.buf_helpers")
 local FileSystem = require("agentic.utils.file_system")
 local Logger = require("agentic.utils.logger")
 local ToolCallDiff = require("agentic.ui.tool_call_diff")
@@ -14,19 +15,30 @@ local M = {}
 --- @field new_winid number Window ID of scratch buffer window
 --- @field new_bufnr number Buffer number of scratch buffer
 --- @field file_path string Path to file being diffed
+--- @field on_accept? fun(lines: string[]) Called when user accepts the diff
+--- @field on_reject? fun() Called when user rejects the diff
+
+--- Pure-Lua storage for state containing non-Vim-serializable values (callbacks).
+--- vim.t cannot hold Lua functions, so we keep the full state here.
+--- @type table<number, agentic.ui.DiffSplitView.State>
+local _states = {}
 
 --- Get split state from tabpage
 --- @param tabpage number Tabpage ID
 --- @return agentic.ui.DiffSplitView.State|nil state
 local function get_state(tabpage)
-    return vim.t[tabpage]._agentic_diff_split_state
+    return _states[tabpage]
 end
 
 --- Set split state for tabpage
 --- @param tabpage number Tabpage ID
 --- @param state agentic.ui.DiffSplitView.State|nil State to set (nil to clear)
 local function set_state(tabpage, state)
-    vim.t[tabpage]._agentic_diff_split_state = state
+    if state == nil then
+        _states[tabpage] = nil
+    else
+        _states[tabpage] = state
+    end
 end
 
 --- Reconstruct full modified file from agent's partial diffs
@@ -99,8 +111,17 @@ end
 --- @param bufnr number
 --- @param target_winid number
 --- @param modified_lines string[]
+--- @param on_accept? fun(lines: string[])
+--- @param on_reject? fun()
 --- @return boolean success
-local function open_split_view(abs_path, bufnr, target_winid, modified_lines)
+local function open_split_view(
+    abs_path,
+    bufnr,
+    target_winid,
+    modified_lines,
+    on_accept,
+    on_reject
+)
     local suggestion_name = abs_path .. " (suggestion)"
     cleanup_stale_suggestion_buf(suggestion_name)
 
@@ -128,13 +149,7 @@ local function open_split_view(abs_path, bufnr, target_winid, modified_lines)
     if vim.b[bufnr]._agentic_prev_modifiable == nil then
         vim.b[bufnr]._agentic_prev_modifiable = vim.bo[bufnr].modifiable
     end
-    if vim.b[bufnr]._agentic_prev_modified == nil then
-        vim.b[bufnr]._agentic_prev_modified = vim.bo[bufnr].modified
-    end
     vim.bo[bufnr].modifiable = false
-    vim.bo[bufnr].modified = true
-
-    vim.bo[scratch_bufnr].modifiable = false
 
     vim.schedule(function()
         if not vim.api.nvim_win_is_valid(target_winid) then
@@ -152,13 +167,59 @@ local function open_split_view(abs_path, bufnr, target_winid, modified_lines)
         return false
     end
 
-    set_state(tabpage, {
+    --- @type agentic.ui.DiffSplitView.State
+    local state = {
         original_winid = target_winid,
         original_bufnr = bufnr,
         new_winid = new_winid,
         new_bufnr = scratch_bufnr,
         file_path = abs_path,
-    })
+        on_accept = on_accept,
+        on_reject = on_reject,
+    }
+    set_state(tabpage, state)
+
+    local keymaps = Config.keymaps.diff_preview
+    if keymaps.accept_diff then
+        local function accept_fn()
+            local s = get_state(tabpage)
+            if not s or not s.on_accept then
+                return
+            end
+            local lines = vim.api.nvim_buf_get_lines(s.new_bufnr, 0, -1, false)
+            s.on_accept(lines)
+        end
+        BufHelpers.keymap_set(bufnr, "n", keymaps.accept_diff, accept_fn, {
+            desc = "Accept diff - Agentic",
+        })
+        BufHelpers.keymap_set(
+            scratch_bufnr,
+            "n",
+            keymaps.accept_diff,
+            accept_fn,
+            { desc = "Accept diff - Agentic" }
+        )
+    end
+
+    if keymaps.reject_diff then
+        local function reject_fn()
+            local s = get_state(tabpage)
+            if not s or not s.on_reject then
+                return
+            end
+            s.on_reject()
+        end
+        BufHelpers.keymap_set(bufnr, "n", keymaps.reject_diff, reject_fn, {
+            desc = "Reject diff - Agentic",
+        })
+        BufHelpers.keymap_set(
+            scratch_bufnr,
+            "n",
+            keymaps.reject_diff,
+            reject_fn,
+            { desc = "Reject diff - Agentic" }
+        )
+    end
 
     return true
 end
@@ -231,7 +292,14 @@ function M.show_split_diff(opts)
             return false
         end
 
-        return open_split_view(abs_path, bufnr, target_winid, new_lines)
+        return open_split_view(
+            abs_path,
+            bufnr,
+            target_winid,
+            new_lines,
+            opts.on_accept,
+            opts.on_reject
+        )
     end
 
     local original_lines, err = FileSystem.read_from_buffer_or_disk(abs_path)
@@ -258,7 +326,14 @@ function M.show_split_diff(opts)
         return false
     end
 
-    return open_split_view(abs_path, bufnr, target_winid, modified_lines)
+    return open_split_view(
+        abs_path,
+        bufnr,
+        target_winid,
+        modified_lines,
+        opts.on_accept,
+        opts.on_reject
+    )
 end
 
 --- @param tabpage number|nil Tabpage ID (defaults to current tabpage)
@@ -295,18 +370,29 @@ function M.clear_split_diff(tabpage)
     end
 
     if vim.api.nvim_buf_is_valid(state.original_bufnr) then
+        local keymaps = Config.keymaps.diff_preview
+        if keymaps.accept_diff then
+            pcall(
+                vim.api.nvim_buf_del_keymap,
+                state.original_bufnr,
+                "n",
+                keymaps.accept_diff
+            )
+        end
+        if keymaps.reject_diff then
+            pcall(
+                vim.api.nvim_buf_del_keymap,
+                state.original_bufnr,
+                "n",
+                keymaps.reject_diff
+            )
+        end
+
         local prev_modifiable =
             vim.b[state.original_bufnr]._agentic_prev_modifiable
-        local prev_modified = vim.b[state.original_bufnr]._agentic_prev_modified
-
         if prev_modifiable ~= nil then
             vim.bo[state.original_bufnr].modifiable = prev_modifiable
             vim.b[state.original_bufnr]._agentic_prev_modifiable = nil
-        end
-
-        if prev_modified ~= nil then
-            vim.bo[state.original_bufnr].modified = prev_modified
-            vim.b[state.original_bufnr]._agentic_prev_modified = nil
         end
     end
 

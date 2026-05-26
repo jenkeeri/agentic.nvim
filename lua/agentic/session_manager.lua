@@ -448,8 +448,8 @@ function SessionManager:_on_tool_call_update(tool_call_update)
     end
 
     -- pre-emptively clear diff preview when tool call update is received, as it's either done or failed
-    local is_rejection = tool_call_update.status == "failed"
-    self:_clear_diff_in_buffer(tool_call_update.tool_call_id, is_rejection)
+    local cleanup_new_file = tool_call_update.status == "failed"
+    self:_clear_diff_in_buffer(tool_call_update.tool_call_id, cleanup_new_file)
 
     -- Remove the permission request if the tool call failed before user granted it
     if tool_call_update.status == "failed" then
@@ -910,15 +910,23 @@ function SessionManager:_build_handlers()
         on_request_permission = function(request, callback)
             self.status_animation:stop()
 
+            local tool_call_id = request.toolCall.toolCallId
+
+            -- Find the reject_once option ID (agent-provided, may differ from the kind string)
+            local reject_once_id
+            for _, opt in ipairs(request.options) do
+                if opt.kind == "reject_once" then
+                    reject_once_id = opt.optionId
+                    break
+                end
+            end
+
             local function wrapped_callback(option_id)
                 callback(option_id)
 
-                local is_rejection = option_id == "reject_once"
+                local cleanup_new_file = option_id == "reject_once"
                     or option_id == "reject_always"
-                self:_clear_diff_in_buffer(
-                    request.toolCall.toolCallId,
-                    is_rejection
-                )
+                self:_clear_diff_in_buffer(tool_call_id, cleanup_new_file)
 
                 if
                     not self.permission_manager.current_request
@@ -928,7 +936,67 @@ function SessionManager:_build_handlers()
                 end
             end
 
-            self:_show_diff_in_buffer(request.toolCall.toolCallId)
+            local function on_accept_local(applied_lines)
+                local tracker =
+                    self.message_writer.tool_call_blocks[tool_call_id]
+                if tracker and tracker.file_path then
+                    local abs_path =
+                        require("agentic.utils.file_system").to_absolute_path(
+                            tracker.file_path
+                        )
+                    local bufnr = vim.fn.bufnr(abs_path)
+                    if bufnr == -1 then
+                        bufnr = vim.fn.bufadd(abs_path)
+                        vim.fn.bufload(bufnr)
+                    end
+                    if vim.api.nvim_buf_is_valid(bufnr) then
+                        vim.api.nvim_buf_set_lines(
+                            bufnr,
+                            0,
+                            -1,
+                            false,
+                            applied_lines
+                        )
+                        vim.api.nvim_buf_call(bufnr, function()
+                            vim.cmd("silent! write")
+                        end)
+                    end
+                end
+
+                if reject_once_id then
+                    callback(reject_once_id)
+                end
+                self.permission_manager:discard_current()
+                self:_clear_diff_in_buffer(tool_call_id, false)
+
+                if
+                    not self.permission_manager.current_request
+                    and #self.permission_manager.queue == 0
+                then
+                    self.status_animation:start("generating")
+                end
+            end
+
+            local function on_reject_local()
+                if reject_once_id then
+                    callback(reject_once_id)
+                end
+                self.permission_manager:discard_current()
+                self:_clear_diff_in_buffer(tool_call_id, true)
+
+                if
+                    not self.permission_manager.current_request
+                    and #self.permission_manager.queue == 0
+                then
+                    self.status_animation:start("generating")
+                end
+            end
+
+            self:_show_diff_in_buffer(
+                tool_call_id,
+                on_accept_local,
+                on_reject_local
+            )
             self.permission_manager:add_request(request, wrapped_callback)
         end,
     }
@@ -1108,7 +1176,9 @@ function SessionManager:add_buffer_diagnostics_to_context(bufnr)
 end
 
 --- @param tool_call_id string
-function SessionManager:_show_diff_in_buffer(tool_call_id)
+--- @param on_accept? fun(lines: string[])
+--- @param on_reject? fun()
+function SessionManager:_show_diff_in_buffer(tool_call_id, on_accept, on_reject)
     -- Only show diff if enabled by user config,
     -- and cursor is in the same tabpage as this session to avoid disruption
     if
@@ -1133,6 +1203,8 @@ function SessionManager:_show_diff_in_buffer(tool_call_id)
     DiffPreview.show_diff({
         file_path = tracker.file_path,
         diff = tracker.diff,
+        on_accept = on_accept,
+        on_reject = on_reject,
         get_winid = function(bufnr)
             local winid = self.widget:find_first_non_widget_window()
             if not winid then
@@ -1153,8 +1225,8 @@ function SessionManager:_show_diff_in_buffer(tool_call_id)
 end
 
 --- @param tool_call_id string
---- @param is_rejection boolean|nil
-function SessionManager:_clear_diff_in_buffer(tool_call_id, is_rejection)
+--- @param cleanup_new_file boolean|nil
+function SessionManager:_clear_diff_in_buffer(tool_call_id, cleanup_new_file)
     local tracker = tool_call_id
         and self.message_writer.tool_call_blocks[tool_call_id]
 
@@ -1167,7 +1239,7 @@ function SessionManager:_clear_diff_in_buffer(tool_call_id, is_rejection)
         return
     end
 
-    DiffPreview.clear_diff(tracker.file_path, is_rejection)
+    DiffPreview.clear_diff(tracker.file_path, cleanup_new_file)
 end
 
 --- @param new_config_options agentic.acp.ConfigOption[]
